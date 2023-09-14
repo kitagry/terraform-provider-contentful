@@ -91,8 +91,23 @@ func resourceCreateEntry(ctx context.Context, d *schema.ResourceData, env *conte
 	rawField := d.Get("field").([]interface{})
 	for i := 0; i < len(rawField); i++ {
 		field := rawField[i].(map[string]interface{})
+		content := field["content"]
+
+		// Check the type of content and convert to integer if it's an integer.
+		var fieldValue interface{}
+		switch content.(type) {
+		case int:
+			fieldValue = content.(int)
+		case float64:
+			// Handle float64 as well, in case content is a floating-point number.
+			fieldValue = int(content.(float64))
+		default:
+			// If it's not an integer, assume it's a string.
+			fieldValue = content.(string)
+		}
+
 		fieldProperties[field["id"].(string)] = map[string]interface{}{}
-		fieldProperties[field["id"].(string)].(map[string]interface{})[field["locale"].(string)] = field["content"].(string)
+		fieldProperties[field["id"].(string)].(map[string]interface{})[field["locale"].(string)] = fieldValue
 	}
 
 	entry := &contentful.Entry{

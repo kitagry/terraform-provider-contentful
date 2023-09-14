@@ -50,8 +50,16 @@ func resourceContentfulEntry() *schema.Resource {
 							Required: true,
 						},
 						"content": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeList,
 							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeList,
+								Elem: schema.AnyOf(
+									&schema.Schema{Type: schema.TypeString},
+									&schema.Schema{Type: schema.TypeFloat},
+									&schema.Schema{Type: schema.TypeInt},
+								),
+							},
 						},
 						"locale": {
 							Type:     schema.TypeString,

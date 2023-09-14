@@ -50,20 +50,16 @@ func resourceContentfulEntry() *schema.Resource {
 							Required: true,
 						},
 						"content": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeString,
 							Required: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeList,
-								Elem: schema.AnyOf(
-									&schema.Schema{Type: schema.TypeString},
-									&schema.Schema{Type: schema.TypeFloat},
-									&schema.Schema{Type: schema.TypeInt},
-								),
-							},
 						},
 						"locale": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -100,18 +96,17 @@ func resourceCreateEntry(ctx context.Context, d *schema.ResourceData, env *conte
 	for i := 0; i < len(rawField); i++ {
 		field := rawField[i].(map[string]interface{})
 		content := field["content"]
+		fieldType := field["type"].(string)
 
-		// Check the type of content and convert to integer if it's an integer.
+		// Check the type of content and convert accordingly.
 		var fieldValue interface{}
-		switch content.(type) {
-		case int:
-			fieldValue = content.(int)
-		case float64:
-			// Handle float64 as well, in case content is a floating-point number.
-			fieldValue = int(content.(float64))
+		switch fieldType {
+		case "Number":
+			fieldValue, _ = strconv.ParseFloat(content.(string), 64)
+		case "Integer":
+			fieldValue, _ = strconv.Atoi(content.(string))
 		default:
-			// If it's not an integer, assume it's a string.
-			fieldValue = content.(string)
+			fieldValue = content
 		}
 
 		fieldProperties[field["id"].(string)] = map[string]interface{}{}

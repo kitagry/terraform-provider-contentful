@@ -2,7 +2,7 @@ package contentful
 
 import (
 	"context"
-
+    "strconv"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	contentful "github.com/kitagry/contentful-go"

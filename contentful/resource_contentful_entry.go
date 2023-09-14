@@ -2,6 +2,7 @@ package contentful
 
 import (
 	"context"
+	"fmt"
     "strconv"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -50,16 +51,12 @@ func resourceContentfulEntry() *schema.Resource {
 							Required: true,
 						},
 						"content": {
-							Type:     schema.TypeString,
+							Type: schema.TypeString,
 							Required: true,
 						},
 						"locale": {
 							Type:     schema.TypeString,
 							Required: true,
-						},
-						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
 						},
 					},
 				},
@@ -95,20 +92,25 @@ func resourceCreateEntry(ctx context.Context, d *schema.ResourceData, env *conte
 	rawField := d.Get("field").([]interface{})
 	for i := 0; i < len(rawField); i++ {
 		field := rawField[i].(map[string]interface{})
-		content := field["content"]
-		fieldType := field["type"].(string)
+		content, ok := field["content"].(string)
 
-		// Check the type of content and convert accordingly.
-		var fieldValue interface{}
-		switch fieldType {
-		case "Number":
-			fieldValue, _ = strconv.ParseFloat(content.(string), 64)
-		case "Integer":
-			fieldValue, _ = strconv.Atoi(content.(string))
-		default:
-			fieldValue = content
+		if !ok {
+			fmt.Println("content is not a string")
+			continue
 		}
 
+		var fieldValue interface{}
+		if floatValue, err := strconv.ParseFloat(content, 64); err == nil {
+			// fmt.Printf("%s is a float: %f\n", content, floatValue)
+			fieldValue = floatValue
+		} else if intValue, err := strconv.Atoi(content); err == nil {
+			// fmt.Printf("%s is an integer: %d\n", content, intValue)
+			fieldValue = intValue
+		} else {
+			// fmt.Printf("%s is neither an integer nor a float\n", content)
+			fieldValue = content
+		}
+			
 		fieldProperties[field["id"].(string)] = map[string]interface{}{}
 		fieldProperties[field["id"].(string)].(map[string]interface{})[field["locale"].(string)] = fieldValue
 	}
@@ -161,8 +163,27 @@ func resourceUpdateEntry(ctx context.Context, d *schema.ResourceData, env *conte
 	rawField := d.Get("field").([]interface{})
 	for i := 0; i < len(rawField); i++ {
 		field := rawField[i].(map[string]interface{})
+		content, ok := field["content"].(string)
+
+		if !ok {
+			fmt.Println("Content is not a string")
+			continue
+		}
+		
+		var fieldValue interface{}
+		if floatValue, err := strconv.ParseFloat(content, 64); err == nil {
+			// fmt.Printf("%s is a float: %f\n", content, floatValue)
+			fieldValue = floatValue
+		} else if intValue, err := strconv.Atoi(content); err == nil {
+			// fmt.Printf("%s is an integer: %d\n", content, intValue)
+			fieldValue = intValue
+		} else {
+			// fmt.Printf("%s is neither an integer nor a float\n", content)
+			fieldValue = content
+		}
+			
 		fieldProperties[field["id"].(string)] = map[string]interface{}{}
-		fieldProperties[field["id"].(string)].(map[string]interface{})[field["locale"].(string)] = field["content"].(string)
+		fieldProperties[field["id"].(string)].(map[string]interface{})[field["locale"].(string)] = fieldValue
 	}
 
 	entry.Fields = fieldProperties

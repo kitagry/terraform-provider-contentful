@@ -2,7 +2,7 @@
 [![codecov](https://coveralls.io/repos/github/kitagry/terraform-provider-contentful/badge.svg?branch=main)](https://coveralls.io/github/kitagry/terraform-provider-contentful?branch=main)
 [![license](https://img.shields.io/github/license/kitagry/terraform-provider-contentful.svg)](https://github.com/kitagry/terraform-provider-contentful/blob/master/LICENSE)
 
-Terraform Provider for [Contentful's](https://www.contentful.com) Content Management API
+Terraform Provider for [Contentful's](https://www.contentful.com) Content Management API - Add ons
 
 # About
 

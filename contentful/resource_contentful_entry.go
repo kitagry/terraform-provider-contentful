@@ -2,7 +2,8 @@ package contentful
 
 import (
 	"context"
-
+	"fmt"
+    "strconv"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	contentful "github.com/kitagry/contentful-go"
@@ -50,7 +51,7 @@ func resourceContentfulEntry() *schema.Resource {
 							Required: true,
 						},
 						"content": {
-							Type:     schema.TypeString,
+							Type: schema.TypeString,
 							Required: true,
 						},
 						"locale": {
@@ -91,8 +92,27 @@ func resourceCreateEntry(ctx context.Context, d *schema.ResourceData, env *conte
 	rawField := d.Get("field").([]interface{})
 	for i := 0; i < len(rawField); i++ {
 		field := rawField[i].(map[string]interface{})
+		content, ok := field["content"].(string)
+
+		if !ok {
+			fmt.Println("content is not a string")
+			continue
+		}
+
+		var fieldValue interface{}
+		if floatValue, err := strconv.ParseFloat(content, 64); err == nil {
+			// fmt.Printf("%s is a float: %f\n", content, floatValue)
+			fieldValue = floatValue
+		} else if intValue, err := strconv.Atoi(content); err == nil {
+			// fmt.Printf("%s is an integer: %d\n", content, intValue)
+			fieldValue = intValue
+		} else {
+			// fmt.Printf("%s is neither an integer nor a float\n", content)
+			fieldValue = content
+		}
+			
 		fieldProperties[field["id"].(string)] = map[string]interface{}{}
-		fieldProperties[field["id"].(string)].(map[string]interface{})[field["locale"].(string)] = field["content"].(string)
+		fieldProperties[field["id"].(string)].(map[string]interface{})[field["locale"].(string)] = fieldValue
 	}
 
 	entry := &contentful.Entry{
@@ -143,8 +163,27 @@ func resourceUpdateEntry(ctx context.Context, d *schema.ResourceData, env *conte
 	rawField := d.Get("field").([]interface{})
 	for i := 0; i < len(rawField); i++ {
 		field := rawField[i].(map[string]interface{})
+		content, ok := field["content"].(string)
+
+		if !ok {
+			fmt.Println("Content is not a string")
+			continue
+		}
+		
+		var fieldValue interface{}
+		if floatValue, err := strconv.ParseFloat(content, 64); err == nil {
+			// fmt.Printf("%s is a float: %f\n", content, floatValue)
+			fieldValue = floatValue
+		} else if intValue, err := strconv.Atoi(content); err == nil {
+			// fmt.Printf("%s is an integer: %d\n", content, intValue)
+			fieldValue = intValue
+		} else {
+			// fmt.Printf("%s is neither an integer nor a float\n", content)
+			fieldValue = content
+		}
+			
 		fieldProperties[field["id"].(string)] = map[string]interface{}{}
-		fieldProperties[field["id"].(string)].(map[string]interface{})[field["locale"].(string)] = field["content"].(string)
+		fieldProperties[field["id"].(string)].(map[string]interface{})[field["locale"].(string)] = fieldValue
 	}
 
 	entry.Fields = fieldProperties
